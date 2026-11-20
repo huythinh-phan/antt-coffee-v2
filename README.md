@@ -3,6 +3,8 @@
 Hệ thống Web Quản Lý & Bán Hàng Quán Cà Phê — **Đồ án tổng hợp (HCMUT - Khoa KH&KT Máy Tính)**.
 Bản hợp nhất hoàn chỉnh (`antt-coffee-v3`) giữa giao diện **Bootstrap 4 (ANTT Coffee)** + **Backend Express API & Database `my_coffee_shop`** của nhóm và bộ lõi kiểm tra nghiệp vụ + kiểm thử tự động (**Vitest + Playwright**).
 
+- **Live Demo (Vercel):** https://antt-coffee-v2.vercel.app/
+
 ## Tài khoản mặc định (từ `db.sql`)
 
 | Vai trò | Tên đăng nhập | Mật khẩu | Ghi chú |
