@@ -1,10 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
 
-// Chạy từ thư mục gốc project:  npm run test:e2e
-// Có thể trỏ vào URL đã deploy:  BASE_URL=https://xxx.vercel.app npm run test:e2e   (bỏ qua webServer)
 const root = fileURLToPath(new URL('../..', import.meta.url))
-const PORT = 4173
+const PORT = 4175
 const external = process.env.BASE_URL
 const baseURL = external || `http://localhost:${PORT}`
 
@@ -12,8 +10,9 @@ export default defineConfig({
   testDir: '.',
   testMatch: /.*\.spec\.js/,
   timeout: 30_000,
-  expect: { timeout: 5_000 },
-  fullyParallel: true,
+  expect: { timeout: 8_000 },
+  fullyParallel: false,
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { open: 'never', outputFolder: '../../playwright-report' }]],
@@ -26,11 +25,11 @@ export default defineConfig({
   webServer: external
     ? undefined
     : {
-        command: `npm run build && npm run preview -- --port ${PORT} --strictPort`,
+        command: `node server/index.js`,
         cwd: root,
-        url: baseURL,
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
+        env: { ...process.env, PORT: String(PORT) },
+        url: `${baseURL}/api/health`,
+        reuseExistingServer: false,
+        timeout: 60_000,
       },
 })
-

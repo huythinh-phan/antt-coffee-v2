@@ -1,40 +1,36 @@
 {
-  "name": "coffee-manager",
+  "name": "antt-coffee-v3",
   "private": true,
-  "version": "1.0.0",
+  "version": "3.0.0",
+  "description": "ANTT Coffee v3 - Fullstack Web Quản Lý & Bán Hàng Quán Cà Phê (Frontend Bootstrap 4 + Express Backend API)",
   "type": "module",
+  "main": "server/index.js",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint . --max-warnings=0",
-    "preview": "vite preview",
+    "dev": "node --watch server/index.js",
+    "start": "node server/index.js",
+    "build": "node -e \"console.log('Static frontend in public/ & Serverless API in api/ ready for deployment')\"",
+    "lint": "eslint server src --max-warnings=0",
     "test:unit": "vitest run",
     "test:e2e": "playwright test -c testsuite/e2e/playwright.config.js",
     "check": "npm run lint && npm run test:unit && npm run build"
   },
   "dependencies": {
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "react-router-dom": "^7.9.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.11.5",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@playwright/test": "^1.50.0",
-    "@types/react": "^19.1.16",
-    "@types/react-dom": "^19.1.9",
-    "@vitejs/plugin-react": "^5.0.4",
-    "autoprefixer": "^10.4.21",
     "eslint": "^9.36.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.22",
     "globals": "^16.4.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.18",
-    "vite": "^7.3.8",
+    "vite": "^7.1.0",
     "vitest": "^3.2.0"
   }
 }

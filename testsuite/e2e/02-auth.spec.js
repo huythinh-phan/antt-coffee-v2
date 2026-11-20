@@ -1,113 +1,64 @@
 import { test, expect } from '@playwright/test'
-import { tid, login, logout, nav, expectLoggedInAs, currentPoints, ADMIN, KHACH } from './helpers.js'
+import { tid, login, resetBackend, ADMIN, USER } from './helpers.js'
 
-// TC-AUTH-*, FR-AUTH-01..06
-
-test.describe('Đăng nhập / đăng xuất', () => {
-  test('TC-AUTH-01 form đăng nhập không điền sẵn, có gợi ý tài khoản demo', async ({ page }) => {
-    await page.goto('/login')
-    await expect(tid(page, 'login-username')).toHaveValue('')
-    await expect(tid(page, 'login-password')).toHaveValue('')
-    await expect(page.getByText(/admin\s*\/\s*admin/)).toBeVisible()
-    await expect(page.getByText(/khach\s*\/\s*123/)).toBeVisible()
+test.describe('Xác thực, Đăng ký, Khôi phục mật khẩu & Hồ sơ', () => {
+  test.beforeEach(async ({ request }) => {
+    await resetBackend(request)
   })
 
-  test('TC-AUTH-02 sai mật khẩu → thông báo lỗi, vẫn ở trang đăng nhập', async ({ page }) => {
-    await page.goto('/login')
-    await tid(page, 'login-username').fill('khach')
-    await tid(page, 'login-password').fill('sai-mat-khau')
-    await tid(page, 'login-submit').click()
-    await expect(tid(page, 'login-error')).toHaveText('Sai tài khoản hoặc mật khẩu')
-    await expect(page).toHaveURL(/\/login/)
+  test('TC-AUTH-01 đăng nhập sai mật khẩu hiển thị thông báo lỗi trên form', async ({ page }) => {
+    await page.goto('/login.html')
+    await page.locator('#username').fill('user')
+    await page.locator('#password').fill('sai-mat-khau')
+    await page.locator('#loginForm button[type="submit"]').click()
+    await expect(page.locator('#errorMessage')).toContainText('Sai thông tin đăng nhập')
+    await expect(page).toHaveURL(/login\.html/)
   })
 
-  test('TC-AUTH-03 đăng nhập khách → về trang chủ, hiện tên và điểm (8)', async ({ page }) => {
-    await login(page, KHACH)
-    await expect(page).toHaveURL(/\/$/)
-    await expectLoggedInAs(page, 'Khách hàng')
-    expect(await currentPoints(page)).toBe(8)
-  })
+  test('TC-AUTH-02 đăng nhập khách hàng (user/123456) -> về trang chủ, giữ phiên sau F5, xem hồ sơ cá nhân', async ({ page }) => {
+    await login(page, USER)
+    await expect(page).toHaveURL(/index\.html/)
+    await expect(tid(page, 'user-badge')).toContainText('Hello, user')
 
-  test('TC-AUTH-04 giữ phiên sau F5; đăng xuất thì F5 vẫn là khách vãng lai', async ({ page }) => {
-    await login(page, KHACH)
     await page.reload()
-    await expectLoggedInAs(page, 'Khách hàng')
-    await logout(page)
-    await page.reload()
-    await expect(page.locator('[data-testid="nav-login"]:visible, [data-testid="mobile-menu-button"]:visible').first()).toBeVisible()
-    await page.goto('/history')
-    await expect(page).toHaveURL(/\/login/)
+    await expect(tid(page, 'user-badge')).toContainText('Hello, user')
+
+    // Trang hồ sơ cá nhân (user.html)
+    await page.goto('/user.html')
+    await expect(page.locator('#fullname')).toHaveValue('Ú Ẻ')
+    await expect(page.locator('#points')).toHaveValue(/220/)
+    await page.locator('#address').fill('123 Võ Văn Ngân, Thủ Đức')
+    await page.locator('#profileForm button[type="submit"]').click()
+    await expect(tid(page, 'toast')).toContainText('Cập nhật hồ sơ thành công')
   })
 
-  test('TC-AUTH-05 username không phân biệt hoa/thường', async ({ page }) => {
-    await login(page, { username: '  KHACH ', password: '123' })
-    await expectLoggedInAs(page, 'Khách hàng')
+  test('TC-AUTH-03 đăng ký tài khoản mới và khôi phục mật khẩu', async ({ page }) => {
+    await page.goto('/register.html')
+    await page.locator('#fullname').fill('Trần Khánh An')
+    await page.locator('#username').fill('khanhan')
+    await page.locator('#email').fill('an@antt.com')
+    await page.locator('#password').fill('123456')
+    await page.locator('#confirmPassword').fill('123456')
+    await page.locator('#registerForm button[type="submit"]').click()
+    await expect(page).toHaveURL(/login\.html/)
+
+    // Khôi phục mật khẩu
+    page.on('dialog', (d) => d.accept())
+    await page.goto('/forget-password.html')
+    await page.locator('#username').fill('khanhan')
+    await page.locator('#email').fill('an@antt.com')
+    await page.locator('#newPassword').fill('newpass123')
+    await page.locator('#resetForm button[type="submit"]').click()
+    await expect(page).toHaveURL(/login\.html/)
+
+    // Đăng nhập bằng mật khẩu mới
+    await login(page, { username: 'khanhan', password: 'newpass123' })
+    await expect(tid(page, 'user-badge')).toContainText('Hello, khanhan')
   })
 
-  test('TC-AUTH-06 đã đăng nhập mà mở /login → chuyển về trang chủ', async ({ page }) => {
-    await login(page, KHACH)
-    await page.goto('/login')
-    await expect(page).toHaveURL(/\/$/)
-  })
-})
-
-test.describe('Đăng ký', () => {
-  test('TC-AUTH-10 đăng ký hợp lệ → tự đăng nhập, điểm 0', async ({ page }) => {
-    await page.goto('/register')
-    await tid(page, 'register-name').fill('Nguyễn An')
-    await tid(page, 'register-username').fill('AnNguyen')
-    await tid(page, 'register-password').fill('matkhau1')
-    await tid(page, 'register-submit').click()
-    await page.waitForURL((u) => !u.pathname.startsWith('/register'))
-    await expectLoggedInAs(page, 'Nguyễn An')
-    expect(await currentPoints(page)).toBe(0)
-    // đăng xuất rồi đăng nhập lại bằng username viết thường
-    await logout(page)
-    await login(page, { username: 'annguyen', password: 'matkhau1' })
-    await expectLoggedInAs(page, 'Nguyễn An')
-  })
-
-  test('TC-AUTH-11 trùng username (khach) → báo lỗi', async ({ page }) => {
-    await page.goto('/register')
-    await tid(page, 'register-name').fill('Ai Đó')
-    await tid(page, 'register-username').fill('KHACH')
-    await tid(page, 'register-password').fill('matkhau1')
-    await tid(page, 'register-submit').click()
-    await expect(tid(page, 'register-error')).toHaveText('Tên đăng nhập đã tồn tại')
-    await expect(page).toHaveURL(/\/register/)
-  })
-
-  test('TC-AUTH-12 mật khẩu < 6 ký tự / username có ký tự lạ → báo lỗi, không tạo tài khoản', async ({ page }) => {
-    await page.goto('/register')
-    await tid(page, 'register-name').fill('Ai Đó')
-    await tid(page, 'register-username').fill('ai_do')
-    await tid(page, 'register-password').fill('123')
-    await tid(page, 'register-submit').click()
-    await expect(tid(page, 'register-error')).toBeVisible()
-    await tid(page, 'register-password').fill('matkhau1')
-    await tid(page, 'register-username').fill('ai do!')
-    await tid(page, 'register-submit').click()
-    await expect(tid(page, 'register-error')).toBeVisible()
-    await expect(page).toHaveURL(/\/register/)
-  })
-})
-
-test.describe('Điều hướng theo vai trò', () => {
-  test('TC-AUTH-20 khách chỉ thấy liên kết khách; admin thấy thêm 5 liên kết quản trị', async ({ page }) => {
-    await login(page, KHACH)
-    await expect(page.locator('[data-testid="nav-admin-orders"]:visible')).toHaveCount(0)
-    await logout(page)
+  test('TC-AUTH-04 đăng nhập Admin (admin/admin123) tự động chuyển tới trang Quản trị admin.html', async ({ page }) => {
     await login(page, ADMIN)
-    for (const id of ['nav-admin-orders', 'nav-admin-menu', 'nav-admin-promos', 'nav-admin-feedback', 'nav-admin-customers']) {
-      if (id === 'nav-admin-orders') {
-        // đảm bảo drawer/mobile cũng thấy được
-        await nav(page, id)
-        await expect(page).toHaveURL(/\/admin\/orders/)
-      } else {
-        await nav(page, id)
-        await expect(page).toHaveURL(new RegExp(id.replace('nav-', '/').replace('-', '/')))
-      }
-    }
+    await expect(page).toHaveURL(/admin\.html/)
+    await expect(page.locator('.navbar-brand')).toContainText('ANTT')
   })
 })
-

@@ -1,57 +1,54 @@
-# ☕ Coffee Manager
+# ☕ ANTT Coffee v3
 
-Web đặt đồ uống & quản lý quán cà phê – **bản demo** của Đồ án tổng hợp (HCMUT, K251).
-React 19 · Vite 7 · Tailwind CSS 3 · React Router 7 · dữ liệu lưu `localStorage` · triển khai tĩnh trên Vercel.
+Hệ thống Web Quản Lý & Bán Hàng Quán Cà Phê — **Đồ án tổng hợp (HCMUT - Khoa KH&KT Máy Tính)**.
+Bản hợp nhất hoàn chỉnh (`antt-coffee-v3`) giữa giao diện **Bootstrap 4 (ANTT Coffee)** + **Backend Express API & Database `my_coffee_shop`** của nhóm và bộ lõi kiểm tra nghiệp vụ + kiểm thử tự động (**Vitest + Playwright**).
 
-**Demo:** _(điền URL Vercel sau khi deploy)_
+## Tài khoản mặc định (từ `db.sql`)
 
-## Tài khoản demo
+| Vai trò | Tên đăng nhập | Mật khẩu | Ghi chú |
+|---|---|---|---|
+| **Admin (Quản trị)** | `admin` | `admin123` | Quản lý đơn hàng (có Popup chi tiết), thực đơn, voucher, khách hàng, phản hồi |
+| **Customer (Khách hàng)** | `user` | `123456` | Có sẵn 220 điểm (Hạng Silver), đơn hàng mẫu & hồ sơ cá nhân |
+| **Customer khác** | `ccc` / `bbb` / `aaa` | `123456` | Các tài khoản khách hàng trong `db.sql` |
 
-| Vai trò | Tên đăng nhập | Mật khẩu |
-|---|---|---|
-| Quản trị | `admin` | `admin` |
-| Khách hàng | `khach` | `123` |
+## Cấu trúc dự án
 
-Khách có thể tự **đăng ký** tài khoản mới (mã `WELCOME10` giảm 10% cho đơn đầu tiên).
-
-## Tính năng
-
-- **Khách:** xem/tìm menu, giỏ hàng, mã ưu đãi (kiểm tra điều kiện, báo lý do), ghi chú, đặt đơn, lịch sử, hủy đơn chờ thanh toán, đánh giá đơn hoàn tất, điểm tích luỹ, trang tài khoản.
-- **Quản trị:** quản lý đơn theo quy trình *Chờ thanh toán → Đã thanh toán → Đang pha chế → Hoàn tất* (hoặc Hủy), thống kê nhanh, quản lý menu/ưu đãi, xem phản hồi, cộng/trừ điểm khách, đặt lại dữ liệu demo.
-- Giao diện mobile-first, sáng/tối, tiếng Việt; F5/mở link sâu không lỗi.
-
-## Chạy local
-
-Yêu cầu Node ≥ 20 (khuyến nghị 22).
-
-```bash
-npm ci
-npm run dev          # http://localhost:5173
+```
+antt-coffee-v3/
+├─ public/                  # Toàn bộ giao diện Frontend gốc ANTT Coffee (12 trang HTML, CSS Bootstrap 4, JS, Images)
+├─ server/                  # Backend Express API (Node.js)
+│  ├─ app.js                # Express app phục vụ cả /api/* và static frontend public/
+│  ├─ index.js              # Entry point chạy server local (cổng 3000)
+│  ├─ routes/api.js         # Các endpoint REST (/api/menu, /api/product/:id, /api/orders, /api/vouchers, /api/customers, /api/feedback...)
+│  ├─ db/seedData.js        # Dữ liệu gốc 100% từ db.sql (19 món, 5 voucher, 12 đơn hàng, 4 đánh giá, 5 tài khoản)
+│  ├─ db/store.js           # Embedded Store + logic nghiệp vụ (tính tiền, voucher, điểm & hạng thành viên, soft-delete)
+│  ├─ db/database.js        # Kết nối MySQL (XAMPP) tuỳ chọn khi USE_MYSQL=true
+│  └─ models/db.sql         # File SQL gốc của nhóm (MariaDB/MySQL)
+├─ api/index.js             # Serverless entry point để deploy 1-click lên Vercel
+├─ src/lib/                 # Các module nghiệp vụ thuần (pricing, orderStatus, loyalty, validators, format, id)
+├─ testsuite/               # Bộ kiểm thử hồi quy tự động (152 Unit tests Vitest + 42 E2E tests Playwright)
+└─ vercel.json              # Cấu hình routing & security headers trên Vercel
 ```
 
-| Lệnh | Tác dụng |
-|---|---|
-| `npm run build` / `npm run preview` | Build production → `dist/` / xem bản build |
-| `npm run lint` | ESLint (0 cảnh báo) |
-| `npm run test:unit` | Unit test (Vitest) |
-| `npm run test:e2e` | E2E (Playwright, desktop + mobile) – lần đầu: `npx playwright install chromium` |
-| `npm run check` | lint + unit + build |
+## Chạy ở máy local
 
-## Triển khai
-
-Import repo vào Vercel (preset **Vite**, output `dist`) – `vercel.json` đã cấu hình SPA rewrite và header. Kiểm tra sau deploy:
+Yêu cầu: **Node.js ≥ 20** (không bắt buộc bật XAMPP vì hệ thống đã tích hợp sẵn Embedded Store từ `db.sql`; nếu muốn kết nối MySQL XAMPP chỉ cần đặt `USE_MYSQL=true` trong `.env`).
 
 ```bash
-node testsuite/scripts/verify-deploy.mjs https://<ten-du-an>.vercel.app
+npm install
+npm start
+# Mở http://localhost:3000
 ```
 
-## Giới hạn của bản demo
+## Kiểm thử hồi quy (Regression Test)
 
-- Dữ liệu lưu **trên từng trình duyệt** (không chia sẻ giữa thiết bị). Demo khách + quản trị bằng 2 tab cùng trình duyệt.
-- Xác thực chỉ mang tính minh hoạ (mật khẩu chưa băm) – **đừng dùng mật khẩu thật**. Băm mật khẩu & backend thuộc Phase B.
-- Thanh toán giả lập (thanh toán tại quầy, quản trị xác nhận).
+```bash
+npm run lint         # Kiểm tra mã nguồn với ESLint (0 warning)
+npm run test:unit    # Chạy 152 unit & backend integration tests (Vitest)
+npm run test:e2e     # Chạy E2E Playwright trên cả Desktop & Mobile
+npm run check        # Chạy toàn bộ cổng chất lượng (lint + unit + build)
+```
 
-## Kiểm thử
+## Triển khai Vercel
 
-Bộ kiểm thử (145 unit test Vitest + 194 E2E Playwright): xem [testsuite/README.md](testsuite/README.md).
-
+Import repository lên Vercel (hoặc đẩy lên nhánh `main` đã kết nối Vercel). Vercel tự động chạy `api/index.js` cho mọi đường dẫn `/api/*` và phục vụ giao diện từ `public/`.

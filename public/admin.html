@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <title>Admin Dashboard - ANTT Coffee</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Josefin+Sans:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="css/open-iconic-bootstrap.min.css">
+    <link rel="stylesheet" href="css/ionicons.min.css">
+    <link rel="stylesheet" href="css/flaticon.css">
+    <link rel="stylesheet" href="css/icomoon.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    
+    <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light fixed-top" id="ftco-navbar">
+        <div class="container-fluid px-md-5">
+            <a class="navbar-brand" href="admin.html">ANTT<small>Admin</small></a>
+            
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav">
+                <span class="oi oi-menu"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="ftco-nav">
+                <ul class="navbar-nav nav ml-auto nav-pills" id="admin-tabs" role="tablist">
+                    <li class="nav-item d-none">
+                        <a class="nav-link" id="tab-dashboard" data-toggle="pill" href="#panel-dashboard" role="tab">Tổng Quan</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link active" id="tab-orders" data-toggle="pill" href="#panel-orders" role="tab">Đơn Hàng</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" id="tab-menu" data-toggle="pill" href="#panel-menu" role="tab">Menu</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" id="tab-voucher" data-toggle="pill" href="#panel-voucher" role="tab">Voucher</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" id="tab-customer" data-toggle="pill" href="#panel-customer" role="tab">Khách Hàng</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" id="tab-feedback" data-toggle="pill" href="#panel-feedback" role="tab">Đánh Giá</a>
+                    </li>
+
+                    <li class="nav-item ml-lg-3">
+                        <a href="#" class="nav-link" onclick="logout()" style="padding-left: 0 !important;"><span class="icon-sign-out"></span> Đăng xuất</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="ftco-section admin-section pt-0">
+        <div class="container-fluid px-md-5">
+            
+            <div class="tab-content" id="v-pills-tabContent">
+                
+                <div class="tab-pane fade show active admin-panel" id="panel-orders" role="tabpanel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">Danh Sách Đơn Hàng</h3>
+                        <div>
+                            <button class="btn btn-outline-warning btn-sm mr-2" onclick="renderAdminOrders()"><span class="icon-refresh"></span> Cập nhật</button>
+                            <button class="btn btn-outline-light btn-sm" data-testid="admin-reset-demo" onclick="resetDemoData()">Khôi phục dữ liệu gốc</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead><tr><th>Mã</th><th>Khách Hàng</th><th>Tổng Tiền</th><th>Ngày Đặt</th><th>Trạng Thái</th><th class="text-center">Chi Tiết</th><th class="text-center">Thao Tác</th></tr></thead>
+                            <tbody id="adminOrderBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade admin-panel" id="panel-menu" role="tabpanel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">Quản Lý Thực Đơn</h3>
+                    </div>
+                    <form id="prodForm" class="mb-4 p-3" style="background: rgba(255,255,255,0.02); border-radius: 5px;">
+                        <input type="hidden" name="pid"> 
+                        <input type="hidden" name="currentImage">
+                        <div class="form-row">
+                            <div class="col-md-4 mb-2">
+                                <input class="form-control" name="name" placeholder="Tên món (VD: Cà phê đen)" required>
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <input class="form-control" name="price" type="number" placeholder="Giá tiền" required>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <select class="form-control" name="cate_id" id="cateSelect">
+                                    <option value="1">Cà phê</option>
+                                    <option value="2">Trà</option>
+                                    <option value="3">Món Ăn</option>
+                                    <option value="4">Tráng Miệng</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="customFile" name="image">
+                                    <label class="custom-file-label bg-dark text-white border-secondary" style="height: 38px; line-height: 24px;" for="customFile">Chọn ảnh</label>
+                                </div>
+                            </div>
+                            <div class="col-md-10 mb-2">
+                                <input class="form-control" name="description" placeholder="Mô tả món ăn...">
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <button class="btn btn-primary btn-block" type="submit">Lưu Món</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead><tr><th>ID</th><th>Ảnh</th><th>Tên Món</th><th>Danh Mục</th><th>Giá</th><th>Thao Tác</th></tr></thead>
+                            <tbody id="adminMenuBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade admin-panel" id="panel-voucher" role="tabpanel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">Quản lý mã Giảm Giá</h3>
+                    </div>
+                    <form id="voucherForm" class="mb-4">
+                        <div class="form-row">
+                            <div class="col-md-3 mb-2">
+                                <input class="form-control" name="code" placeholder="Mã Voucher (VD: SALE50)" required>
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <select class="form-control" name="type">
+                                    <option value="amount">Trừ tiền (VNĐ)</option>
+                                    <option value="percent">Giảm %</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <input class="form-control" name="value" type="number" placeholder="Giá trị giảm" required>
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <input class="form-control" name="min" type="number" placeholder="Đơn tối thiểu">
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <button class="btn btn-primary btn-block" type="submit">Tạo Mã</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead><tr><th>Mã</th><th>Loại</th><th>Giá Trị</th><th>Đơn Tối Thiểu</th><th>Trạng Thái</th></tr></thead>
+                            <tbody id="adminVoucherBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade admin-panel" id="panel-customer" role="tabpanel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">Quản Lý Khách Hàng</h3>
+                    </div>
+
+                    <form id="customerForm" class="mb-4 p-3" style="background: rgba(255,255,255,0.02); border-radius: 5px;">
+                        <input type="hidden" name="acc_id">
+                        <div class="form-row">
+                            <div class="col-md-3 mb-2">
+                                <input class="form-control" name="username" placeholder="Tên đăng nhập (Chỉ nhập khi tạo mới)">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <input class="form-control" name="password" type="password" placeholder="Mật khẩu (Chỉ nhập khi tạo mới)">
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <input class="form-control" name="fullname" placeholder="Họ và Tên" required>
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <input class="form-control" name="points" type="number" placeholder="Điểm">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <input class="form-control" name="email" type="email" placeholder="Email" required>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <input class="form-control" name="phone" placeholder="Số điện thoại">
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <button class="btn btn-primary btn-block" type="submit">Lưu</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr><th>ID</th><th>Họ Tên</th><th>Email</th><th>SĐT</th><th>Điểm</th><th>Hạng</th><th>Thao Tác</th></tr>
+                            </thead>
+                            <tbody id="adminCustomerBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade admin-panel" id="panel-feedback" role="tabpanel">
+                    <div class="panel-header"><h3 class="panel-title">Phản Hồi Khách Hàng</h3></div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead><tr><th>ID</th><th>Khách Hàng</th><th>Món</th><th>Nội dung</th><th>Điểm</th><th>Ảnh</th><th>Xóa</th></tr></thead>
+                            <tbody id="adminFeedbackBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery-migrate-3.0.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    
+    <script src="js/api-client.js"></script>
+    <script src="js/admin.js"></script> 
+
+    <script>
+        // Hiển thị tên file khi upload (Script nhỏ hỗ trợ UI)
+        $(".custom-file-input").on("change", function() {
+          var fileName = $(this).val().split("\\").pop();
+          $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        });
+    </script>
+</body>
+</html>

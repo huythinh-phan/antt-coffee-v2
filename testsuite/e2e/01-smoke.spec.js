@@ -1,81 +1,60 @@
 import { test, expect } from '@playwright/test'
-import { tid, collectErrors, isMobile } from './helpers.js'
+import { tid, collectErrors, resetBackend } from './helpers.js'
 
-// TC-SMOKE-*, TC-MENU-*, FR-SYS-01/02/06, FR-MENU-01/02, NFR-PERF-01
+test.describe('Smoke & Giao diện ANTT Coffee (Bootstrap 4 + Express API)', () => {
+  test.beforeEach(async ({ request }) => {
+    await resetBackend(request)
+  })
 
-test.describe('Smoke', () => {
-  test('TC-SMOKE-01 trang chủ tải, tiêu đề đúng, không có lỗi console', async ({ page }) => {
+  test('TC-SMOKE-01 trang chủ index.html tải nhanh, đúng thương hiệu ANTT Coffee, không có lỗi 404 script', async ({ page }) => {
     const errors = collectErrors(page)
-    const res = await page.goto('/')
+    const res = await page.goto('/index.html')
     expect(res.status()).toBe(200)
-    await expect(page).toHaveTitle(/Coffee Manager/i)
-    await expect(page.locator('#root')).not.toBeEmpty()
-    await expect(page.getByText('CoffeeManager').first()).toBeVisible()
+    await expect(page).toHaveTitle(/ANTT Coffee/i)
+    await expect(page.locator('.navbar-brand')).toContainText('ANTT')
     expect(errors).toEqual([])
   })
 
-  for (const path of ['/menu', '/order', '/login', '/register']) {
-    test(`TC-SMOKE-02 mở trực tiếp ${path} không 404/trang trắng`, async ({ page }) => {
+  for (const path of ['/menu.html', '/voucher.html', '/gallery.html', '/cart.html', '/login.html', '/register.html', '/forget-password.html']) {
+    test(`TC-SMOKE-02 mở trực tiếp ${path} trả 200 và không có lỗi JS`, async ({ page }) => {
       const errors = collectErrors(page)
       const res = await page.goto(path)
       expect(res.status()).toBe(200)
-      await expect(page.locator('#root')).not.toBeEmpty()
-      await expect(tid(page, 'not-found')).toHaveCount(0)
+      await expect(page.locator('.navbar-brand')).toContainText('ANTT')
       expect(errors).toEqual([])
     })
   }
 
-  test('TC-SMOKE-03 URL không tồn tại → trang NotFound thân thiện', async ({ page }) => {
-    await page.goto('/duong-dan-khong-ton-tai')
-    await expect(tid(page, 'not-found')).toBeVisible()
-    await page.locator('[data-testid="not-found"] a').first().click()
-    await expect(page).toHaveURL(/\/$/)
-  })
+  test('TC-MENU-01 trang Thực đơn hiển thị đầy đủ 19 món từ db.sql và tìm kiếm món hoạt động', async ({ page }) => {
+    await page.goto('/menu.html')
+    await expect(tid(page, 'menu-card')).toHaveCount(19)
+    await expect(page.locator('[data-testid="menu-card"][data-name="Cappuccino"]')).toContainText('45.000')
 
-  test('TC-SMOKE-04 dark mode chuyển được và được ghi nhớ sau F5', async ({ page }) => {
-    await page.goto('/')
-    if (isMobile(page)) await expect(tid(page, 'theme-toggle').first()).toBeVisible()
-    const html = page.locator('html')
-    const before = await html.getAttribute('class')
-    await page.locator('[data-testid="theme-toggle"]:visible').click()
-    const after = await html.getAttribute('class')
-    expect(after).not.toBe(before)
-    const isDark = /\bdark\b/.test(after || '')
-    await page.reload()
-    expect(/\bdark\b/.test((await html.getAttribute('class')) || '')).toBe(isDark)
-  })
-
-  test('TC-SMOKE-05 thời gian tải trang chủ < 3 giây', async ({ page }) => {
-    const t0 = Date.now()
-    await page.goto('/', { waitUntil: 'load' })
-    await expect(page.getByText('CoffeeManager').first()).toBeVisible()
-    expect(Date.now() - t0).toBeLessThan(3000)
-  })
-})
-
-test.describe('Menu (khách vãng lai)', () => {
-  test('TC-MENU-01 hiển thị 5 món mẫu với tên, loại, giá', async ({ page }) => {
-    await page.goto('/menu')
-    await expect(tid(page, 'menu-card')).toHaveCount(5)
-    await expect(page.locator('[data-testid="menu-card"][data-name="Latte"]')).toContainText(/45\.000/)
-    await expect(page.locator('[data-testid="menu-card"][data-name="Trà đào"]')).toContainText('Trà')
-  })
-
-  test('TC-MENU-02 tìm kiếm không phân biệt hoa/thường, bỏ khoảng trắng đầu/cuối', async ({ page }) => {
-    await page.goto('/menu')
-    await tid(page, 'menu-search').fill('  LATTE ')
+    await page.locator('#searchInput').fill('Cappuccino')
+    await page.locator('#searchBtn').click()
     await expect(tid(page, 'menu-card')).toHaveCount(1)
-    await tid(page, 'menu-search').fill('cappu')
-    await expect(page.locator('[data-testid="menu-card"]')).toHaveAttribute('data-name', 'Cappuccino')
+
+    await page.locator('#searchInput').fill('khong-co-mon-nay')
+    await page.locator('#searchBtn').click()
+    await expect(tid(page, 'menu-empty')).toBeVisible()
   })
 
-  test('TC-MENU-03 không có kết quả → thông báo rỗng', async ({ page }) => {
-    await page.goto('/menu')
-    await tid(page, 'menu-search').fill('zzzzzz')
-    await expect(tid(page, 'menu-card')).toHaveCount(0)
-    await expect(tid(page, 'menu-empty')).toBeVisible()
-    await tid(page, 'menu-search').fill('')
-    await expect(tid(page, 'menu-card')).toHaveCount(5)
+  test('TC-MENU-02 trang Chi tiết sản phẩm (detail.html) tải đúng thông tin từ /api/product/:id và thêm vào giỏ', async ({ page }) => {
+    await page.goto('/detail.html?id=4')
+    await expect(page.locator('#prod-name')).toHaveText('Cappuccino')
+    await expect(page.locator('#prod-price')).toContainText('45.000')
+    await page.locator('.quantity-right-plus').click()
+    await expect(page.locator('#quantity')).toHaveValue('2')
+    await page.locator('#btn-add-cart').click()
+    await expect(page.locator('#cartCount')).toHaveText('2')
+  })
+
+  test('TC-VOUCHER-01 & TC-GALLERY-01 trang Voucher và Gallery hiển thị dữ liệu từ API', async ({ page }) => {
+    await page.goto('/voucher.html')
+    await expect(tid(page, 'voucher-card')).toHaveCount(5)
+    await expect(page.locator('[data-testid="voucher-card"][data-code="TEST10"]')).toBeVisible()
+
+    await page.goto('/gallery.html')
+    await expect(tid(page, 'gallery-card')).toHaveCount(4)
   })
 })
-
