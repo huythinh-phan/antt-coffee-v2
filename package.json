@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "node --watch server/index.js",
     "start": "node server/index.js",
-    "build": "node -e \"console.log('Static frontend in public/ & Serverless API in api/ ready for deployment')\"",
+    "build": "node -e \"import('node:fs').then(fs=>{fs.rmSync('dist',{recursive:true,force:true});fs.cpSync('public','dist',{recursive:true});console.log('Built public/ -> dist/ successfully')})\"",
     "lint": "eslint server src --max-warnings=0",
     "test:unit": "vitest run",
     "test:e2e": "playwright test -c testsuite/e2e/playwright.config.js",
