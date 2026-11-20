@@ -28,3 +28,13 @@ dist-ssr
 .vercel
 .netlify
 coverage/
+
+# Tests
+playwright-report/
+test-results/
+
+# Local docs & agent plan (do not push)
+*.pdf
+docs/
+Agent.md
+agent.md

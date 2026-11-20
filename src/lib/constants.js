@@ -1,0 +1,11 @@
+export const SCHEMA_VERSION = 1
+export const DB_KEY = 'coffee_demo_db'
+export const SESSION_KEY = 'coffee_session'
+export const CART_KEY = 'coffee_cart'
+export const THEME_KEY = 'theme'
+export const MAX_QTY = 50
+export const MAX_NOTE = 200
+export const MAX_FEEDBACK = 500
+export const POINT_UNIT = 10000
+export const ORDER_STATUS = { CREATED: 'CREATED', PAID: 'PAID', PREPARING: 'PREPARING', FULFILLED: 'FULFILLED', CANCELED: 'CANCELED' }
+export const STATUS_LABEL = { CREATED: 'Chờ thanh toán', PAID: 'Đã thanh toán', PREPARING: 'Đang pha chế', FULFILLED: 'Hoàn tất', CANCELED: 'Đã hủy' }

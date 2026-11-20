@@ -2,79 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-
-/* Base tweaks */
 @layer base {
-  html { @apply scroll-smooth; }
-  body { @apply bg-neutral-100 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100; }
-}
-
-/* Helpers */
-.container { @apply max-w-full px-4 mx-auto; }
-.card { @apply bg-white dark:bg-neutral-900 rounded-2xl shadow-sm hover:shadow-lg transition p-6; }
-.btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition; }
-.btn-primary { @apply bg-neutral-900 text-white hover:bg-black dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200; }
-.btn-ghost { @apply hover:bg-neutral-200 dark:hover:bg-neutral-800; }
-.badge { @apply px-2 py-1 rounded text-xs font-medium; }
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  a:hover {
-    color: #747bff;
+  html {
+    @apply scroll-smooth;
   }
-  button {
-    background-color: #f9f9f9;
+  body {
+    @apply min-h-screen bg-neutral-100 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100;
+  }
+  a {
+    @apply text-inherit no-underline;
+  }
+}
+
+@layer components {
+  .container {
+    @apply mx-auto w-full max-w-6xl px-4;
+  }
+  .card {
+    @apply rounded-2xl bg-white p-4 text-neutral-900 shadow-sm sm:p-6 dark:bg-neutral-900 dark:text-neutral-100;
+  }
+  .btn {
+    @apply inline-flex min-h-[40px] items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-neutral-900 text-white hover:bg-black dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200;
+  }
+  .btn-secondary {
+    @apply border border-neutral-300 bg-white text-neutral-900 hover:bg-neutral-100
+      dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800;
+  }
+  .btn-ghost {
+    @apply text-neutral-900 hover:bg-neutral-200 dark:text-neutral-100 dark:hover:bg-neutral-800;
+  }
+  .btn-danger {
+    @apply bg-red-700 text-white hover:bg-red-800;
+  }
+  .btn-success {
+    @apply bg-green-700 text-white hover:bg-green-800;
+  }
+  .btn-info {
+    @apply bg-blue-700 text-white hover:bg-blue-800;
+  }
+  .btn-violet {
+    @apply bg-violet-700 text-white hover:bg-violet-800;
+  }
+  .input {
+    @apply w-full rounded-lg border border-neutral-300 bg-white p-2 text-neutral-900 placeholder:text-neutral-500
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500
+      dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-400;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium;
+  }
+  .field-error {
+    @apply mt-1 text-sm text-red-700 dark:text-red-400;
+  }
+  .badge {
+    @apply inline-block rounded px-2 py-1 text-xs font-medium;
+  }
+  .muted {
+    @apply text-neutral-600 dark:text-neutral-400;
+  }
+  .nav-link {
+    @apply rounded-full px-3 py-1 text-sm;
   }
 }

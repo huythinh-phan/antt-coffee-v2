@@ -1,70 +1,58 @@
-import React, { useReducer } from 'react'
-import { loadDB, saveDB } from '../utils/db'
-const AppCtx = React.createContext()
-const reducer = (state, action) => {
-    const db = loadDB()
-    switch (action.type) {
-        case 'LOGIN': {
-            const u = db.users.find(x => x.username === action.username &&
-            x.password === action.password)
-            if (!u) return { ...state, error: 'Sai tài khoản hoặc mật khẩu' }
-            return { ...state, user: u, error: null }
-        }
-        case 'LOGOUT':
-            return { ...state, user: null }
-            case 'MENU_CREATE': {
-            db.menu.push(action.item); saveDB(db); 
-            return { ...state, _ver: state._ver + 1 }
-        }
-        case 'MENU_UPDATE': {
-            const i = db.menu.findIndex(x => x.id === action.item.id)
-            if (i >= 0) db.menu[i] = action.item; saveDB(db); 
-            return { ...state, _ver: state._ver + 1 }
-        }
-        case 'MENU_DELETE': {
-            const i = db.menu.findIndex(x => x.id === action.id)
-            if (i >= 0) db.menu.splice(i, 1); saveDB(db); 
-            return { ...state, _ver: state._ver + 1 }
-        }
-        case 'PROMO_SAVE': {
-            const i = db.promotions.findIndex(x => x.id === action.promo.id)
-            if (i >= 0) db.promotions[i] = action.promo; 
-            else db.promotions.push(action.promo)
-            saveDB(db); 
-            return { ...state, _ver: state._ver + 1 }
-        }
-        case 'PROMO_DELETE': {
-            const i = db.promotions.findIndex(x => x.id === action.id)
-            if (i >= 0) db.promotions.splice(i, 1); saveDB(db); 
-            return { ...state, _ver: state._ver + 1 }
-        }
-        case 'ORDER_CREATE': {
-            db.orders.unshift(action.order)
-            const earned = Math.floor(action.order.payable / 10000)
-            db.loyalty[action.order.userId] = (db.loyalty[action.order.userId] || 0) + earned
-            saveDB(db)
-            return { ...state, _ver: state._ver + 1, toast: `Đã tạo đơn #$
-            {action.order.code} (+${earned} điểm)` }
-        }
-        case 'ORDER_STATUS': {
-            const i = db.orders.findIndex(x => x.id === action.id)
-            if (i >= 0) db.orders[i].status = action.status
-            saveDB(db); 
-            return { ...state, _ver: state._ver + 1 }
-        }
-        case 'ORDER_RATE': {
-            const i = db.orders.findIndex(x => x.id === action.id)
-            if (i >= 0) { db.orders[i].rating = action.rating;
-            db.orders[i].feedback = action.feedback }
-            saveDB(db); 
-            return { ...state, _ver: state._ver + 1 }
-        }
-        default: return state
+import { useEffect, useMemo, useReducer } from 'react'
+import { AppCtx } from './appContext.js'
+import { reducer, createInitialState } from '../store/reducer.js'
+import { loadDB, saveDB, parseExternalDB } from '../services/db.js'
+import { createSeedDB } from '../services/seed.js'
+import { local, readJSON } from '../services/storage.js'
+import { DB_KEY, SESSION_KEY } from '../lib/constants.js'
+
+function init() {
+  const db = loadDB()
+  const s = readJSON(local, SESSION_KEY)
+  const session = s && typeof s.userId === 'string' && db.users.some((u) => u.id === s.userId) ? { userId: s.userId } : null
+  return createInitialState({ db, session })
+}
+
+export function AppProvider({ children }) {
+  const [state, dispatch] = useReducer(reducer, undefined, init)
+
+  // Lưu DB mỗi khi đổi
+  useEffect(() => {
+    saveDB(state.db)
+  }, [state.db])
+
+  // Lưu phiên
+  useEffect(() => {
+    if (state.session) local.set(SESSION_KEY, JSON.stringify(state.session))
+    else local.remove(SESSION_KEY)
+  }, [state.session])
+
+  // Đồng bộ giữa các tab cùng trình duyệt
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key !== DB_KEY) return
+      const db = parseExternalDB(e.newValue)
+      if (db) dispatch({ type: 'DB_REPLACE', db })
     }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
+  // Tự ẩn toast sau 4 giây
+  const toastId = state.toast?.id
+  useEffect(() => {
+    if (toastId == null) return
+    const t = setTimeout(() => dispatch({ type: 'TOAST_CLEAR' }), 4000)
+    return () => clearTimeout(t)
+  }, [toastId])
+
+  const value = useMemo(
+    () => ({
+      state,
+      dispatch,
+      resetDemo: () => dispatch({ type: 'DB_RESET', db: createSeedDB() }),
+    }),
+    [state],
+  )
+  return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>
 }
-export const AppProvider = ({ children }) => {
-    const [state, dispatch] = useReducer(reducer, { user: null, error: null,
-    _ver: 0 })
-    return <AppCtx.Provider value={{ state, dispatch }}>{children}</AppCtx.Provider>
-}
-export const useApp = () => React.useContext(AppCtx)

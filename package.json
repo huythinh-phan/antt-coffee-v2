@@ -1,13 +1,19 @@
 {
   "name": "coffee-manager",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "lint": "eslint . --max-warnings=0",
+    "preview": "vite preview",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test -c testsuite/e2e/playwright.config.js",
+    "check": "npm run lint && npm run test:unit && npm run build"
   },
   "dependencies": {
     "react": "^19.1.1",
@@ -17,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@playwright/test": "^1.50.0",
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.4",
@@ -27,9 +34,7 @@
     "globals": "^16.4.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.18",
-    "vite": "npm:rolldown-vite@7.1.14"
-  },
-  "overrides": {
-    "vite": "npm:rolldown-vite@7.1.14"
+    "vite": "^7.3.8",
+    "vitest": "^3.2.0"
   }
 }
